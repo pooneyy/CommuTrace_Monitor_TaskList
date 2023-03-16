@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-16 17:14:58
+LastEditTime : 2023-03-16 23:32:39
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -19,9 +19,9 @@ import datetime, pytz, time
 import sys
 import requests
 
-VERSION = 0.1
+VERSION = '0.1.1' # 2023.03.16
 CONFIG_VERSION = 0.1
-HOST = "http://39.101.72.182/index.php/"
+HOST = "http://39.101.72.182/index.php"
 
 def timeStamp_To_dateTime(timeStamp):
     return datetime.datetime.fromtimestamp(int(timeStamp), pytz.timezone('Asia/Shanghai')).strftime('%Y-%m-%d %H:%M:%S')
@@ -68,12 +68,21 @@ def apitruecaptcha(config, content):
         'userid':config['truecaptcha_userid'],
         'apikey':config['truecaptcha_apikey']
     }
-    result = requests.post(url, json.dumps(data))
+    try:result = requests.post(url, json.dumps(data))
+    except requests.exceptions.ProxyError:
+        print("请检查计算机是否使用代理服务器，如有请关闭")
+        os._exit(0)
     res=result.json()
     try:verifycode = res['result']
     except:
-        print("TrueCaptcha已达每日请求上限，无法再识别验证码。")
-        os._exit(0)
+        if res.get('success') == False:
+            print(f"{res['error_type']} {res['error_message']}")
+            if 'Credits' in res['error_message']:
+                print("TrueCaptcha已达每日请求上限，无法再识别验证码。")
+                os._exit(0)
+            else:verifycode = apitruecaptcha(config, content)
+        elif res.get('message') == 'Internal server error':verifycode = apitruecaptcha(config, content)
+        else:verifycode = apitruecaptcha(config, content)
     return verifycode
 
 def getCookie():
@@ -141,28 +150,28 @@ def taskList_To_Msg(taskList):
 '''
     for i in taskList:
         msg += f"|{i['orderID']}|{i['orderDetail']}|{i['createTime']}|{i['unitIncome']}|{i['completed_and_Total']}|"
-    msg += timeStamp_To_dateTime(time.time())
     return msg
 
 def loop(config):
     cookies = login(config)
-    while True:
-        taskList = analyzingAllorder(getAllorder(cookies))
-        if taskList == 0 :
-            cookies = login(cookies)
-            continue
-        i = [i['orderID'] for i in taskList] # 列表，临时存储订单ID用于寻找最大的ID
-        latestOrderID = int(max(i))
-        if latestOrderID > config['latestOrderID']:
-            config['latestOrderID'] = latestOrderID
-            msg = f"#### 有新订单。当前最新是 {latestOrderID}\n"
-            msg += taskList_To_Msg(taskList)
-            sendMsg(config, msg)
-            saveConfig(config)
-            print(f"{taskList_To_Msg(taskList)}\n")
-        print(f"刷新于 {timeStamp_To_dateTime(time.time())}\r",end='')
-        time.sleep(30)
-    ...
+    try:
+        while True:
+            taskList = analyzingAllorder(getAllorder(cookies))
+            if taskList == 0 :
+                cookies = login(cookies)
+                continue
+            i = [i['orderID'] for i in taskList] # 列表，临时存储订单ID用于寻找最大的ID
+            latestOrderID = int(max(i))
+            if latestOrderID > config['latestOrderID']:
+                config['latestOrderID'] = latestOrderID
+                msg = f"#### 有新订单。当前最新是 {latestOrderID}\n"
+                msg += taskList_To_Msg(taskList)
+                sendMsg(config, msg)
+                saveConfig(config)
+                print(f"{taskList_To_Msg(taskList)}\n")
+            print(f"刷新于 {timeStamp_To_dateTime(time.time())}\r",end='')
+            time.sleep(30)
+    except KeyboardInterrupt:print("结束")
 
 def main():
     if 'linux' in sys.platform: sys.stdout.write(f"\x1b]2;监听共迹任务列表 - 版本 {VERSION}\x07")
@@ -170,10 +179,14 @@ def main():
     try:
         config = loadConfig()
         try:loop(config)
+        except TypeError:loop(config)
+        except KeyError:loop(config)
+        except requests.exceptions.ConnectionError:
+            print("与服务器连接中断，30秒后重试")
+            time.sleep(30)
+            loop(config)
         except KeyboardInterrupt:print("结束")
     except FileNotFoundError:init()
-    ...
 
 if __name__ == '__main__':
     main()
-    ...

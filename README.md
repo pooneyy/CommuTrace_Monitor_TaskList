@@ -7,7 +7,7 @@
 
 现有一个已部署的demo，使用微信扫码，也可接收消息推送：
 
-<img src="https://s2.loli.net/2023/03/16/ebVOMoZwFRliA3q.jpg" alt="showqrcode" style="zoom:50%;" />
+<img src="https://s2.loli.net/2023/03/16/ebVOMoZwFRliA3q.jpg" alt="showqrcode" style="zoom: 33%;" />
 
 这个二维码**有效期至2023年4月15日**，二维码失效后，请通过[这个链接](http://www.pushplus.plus/api/customer/topic/getQrCode?topicId=30006)获取新的二维码
 
@@ -31,3 +31,15 @@ python index.py
 
    ![image-20230316161929749](https://s2.loli.net/2023/03/16/m28Pc7BJQinXMZh.png)
    - 群组编码：用于PushPlus发送一对多消息（群发消息）。详见[一对多消息|pushplus(推送加)-微信消息推送平台](http://www.pushplus.plus/push2.html)
+
+### 更新日志
+
+```
+0.1.1 (2023.03.16) 若干更新：
+                   1、令当连接出错时自动重试；
+                   2、令当验证码识别出错时自动重试；
+                   3、处理其他报错。
+
+0.1   (2023.03.16) 初版
+```
+
