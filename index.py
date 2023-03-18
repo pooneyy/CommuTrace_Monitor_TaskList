@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-16 23:32:39
+LastEditTime : 2023-03-18 20:52:16
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -186,7 +186,9 @@ def main():
             time.sleep(30)
             loop(config)
         except KeyboardInterrupt:print("结束")
-    except FileNotFoundError:init()
+    except FileNotFoundError:
+        try:init()
+        except KeyboardInterrupt:print("\n退出，取消初始化")
 
 if __name__ == '__main__':
     main()

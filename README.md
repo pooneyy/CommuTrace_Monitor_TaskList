@@ -9,13 +9,15 @@
 
 <img src="https://s2.loli.net/2023/03/16/ebVOMoZwFRliA3q.jpg" alt="showqrcode" style="zoom: 33%;" />
 
-这个二维码**有效期至2023年4月15日**，二维码失效后，请通过[这个链接](http://www.pushplus.plus/api/customer/topic/getQrCode?topicId=30006)获取新的二维码
+这个二维码**有效期至2023年4月15日**
 
 ### 使用说明
 
 ```bash
 python index.py
 ```
+
+或下载运行[index.exe]([Releases · pooneyy/CommuTrace_Monitor_TaskList (github.com)](https://github.com/pooneyy/CommuTrace_Monitor_TaskList/releases/))
 
 ![image-20230316165557606](https://s2.loli.net/2023/03/16/tscoEFUr5X6SG2i.png)
 
@@ -30,7 +32,7 @@ python index.py
 3. [PushPlus](http://www.pushplus.plus/)的`token`用于消息推送
 
    ![image-20230316161929749](https://s2.loli.net/2023/03/16/m28Pc7BJQinXMZh.png)
-   - 群组编码：用于PushPlus发送一对多消息（群发消息）。详见[一对多消息|pushplus(推送加)-微信消息推送平台](http://www.pushplus.plus/push2.html)
+   - （选填）群组编码：用于PushPlus发送一对多消息（群发消息）。详见[一对多消息|pushplus(推送加)](http://www.pushplus.plus/push2.html)，留空时发送一对一消息。
 
 ### 更新日志
 
