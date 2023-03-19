@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-19 10:46:50
+LastEditTime : 2023-03-20 07:12:39
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -19,7 +19,7 @@ import datetime, pytz, time
 import sys
 import requests
 
-VERSION = '0.1.2' # 2023.03.19
+VERSION = '0.1.3' # 2023.03.20
 CONFIG_VERSION = 0.1
 HOST = "http://39.101.72.182/index.php"
 
@@ -152,7 +152,7 @@ def taskList_To_Msg(taskList):
 | :----: | :------: | :------: | :------: | :------: |
 '''
     for i in taskList:
-        msg += f"|{i['orderID']}|{i['orderDetail']}|{i['createTime']}|{i['unitIncome']}|{i['completed_and_Total']}|"
+        msg += f"|{i['orderID']}|{i['orderDetail']}|{i['createTime']}|{i['unitIncome']}|{i['completed_and_Total']}|\n"
     return msg
 
 def loop(config):
