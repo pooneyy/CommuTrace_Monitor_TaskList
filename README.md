@@ -17,7 +17,7 @@
 python index.py
 ```
 
-或下载运行[index.exe](https://github.com/pooneyy/CommuTrace_Monitor_TaskList/releases/)
+或下载运行[index.exe](https://github.com/pooneyy/CommuTrace_Monitor_TaskList/releases/latest)
 
 ![image-20230316165557606](https://s2.loli.net/2023/03/16/tscoEFUr5X6SG2i.png)
 
