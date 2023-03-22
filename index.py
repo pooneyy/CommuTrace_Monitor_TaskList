@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-20 07:12:39
+LastEditTime : 2023-03-22 18:30:57
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -19,7 +19,7 @@ import datetime, pytz, time
 import sys
 import requests
 
-VERSION = '0.1.3' # 2023.03.20
+VERSION = '0.1.4' # 2023.03.22
 CONFIG_VERSION = 0.1
 HOST = "http://39.101.72.182/index.php"
 
@@ -122,12 +122,15 @@ def analyzingAllorder(allorder):
     if '请在登录后操作' in allorder:return 0
     else:
         taskData = re.findall(r'<td>[\s\S]+<\/td>', allorder)
-        if not taskData:return 0
+        if not taskData:
+            print(f"{timeStamp_To_dateTime(time.time())}\t当前无订单\r",end='')
+            return 1
         else:
             taskData = taskData[0]
             createTime = re.findall(r"(([0-9]{3}[1-9]|[0-9]{2}[1-9][0-9]{1}|[0-9]{1}[1-9][0-9]{2}|[1-9][0-9]{3})-(((0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01]))|((0[469]|11)-(0[1-9]|[12][0-9]|30))|(02-(0[1-9]|[1][0-9]|2[0-8]))))|((([0-9]{2})(0[48]|[2468][048]|[13579][26])|((0[48]|[2468][048]|[3579][26])00))-02-29)", taskData)
             for i in createTime:
                 taskData = taskData.replace(f"{i[0]}" , f"{i[0]}_")
+            taskData = re.sub(r"\d+\/", "" ,taskData)
             taskData = taskData.replace("\"" , "\'")
             taskData = taskData.replace(' ' , '')
             taskData = taskData.replace('\t' , '')
@@ -148,7 +151,7 @@ def analyzingAllorder(allorder):
 
 def taskList_To_Msg(taskList):
     msg = f'''
-| 订单号 | 订单细节 | 创建时间 | 单位收益 | 完成量/总量 |
+| 订单号 | 订单细节 | 创建时间 | 单位收益 | 总量 |
 | :----: | :------: | :------: | :------: | :------: |
 '''
     for i in taskList:
@@ -160,7 +163,8 @@ def loop(config):
         cookies = login(config)
         while True:
             taskList = analyzingAllorder(getAllorder(cookies))
-            if  taskList == 0 :cookies = login(cookies)
+            if   taskList == 0 :cookies = login(cookies)
+            elif taskList == 1 :time.sleep(30)
             else:
                 i = [i['orderID'] for i in taskList] # 列表，临时存储订单ID用于寻找最大的ID
                 latestOrderID = int(max(i))
@@ -170,8 +174,8 @@ def loop(config):
                     msg += taskList_To_Msg(taskList)
                     sendMsg(config, msg)
                     saveConfig(config)
-                    print(f"{taskList_To_Msg(taskList)}\n")
-                print(f"刷新于 {timeStamp_To_dateTime(time.time())}\r",end='')
+                    print(f"{taskList_To_Msg(taskList)}")
+                print(f"{timeStamp_To_dateTime(time.time())}\t刷新\r",end='')
                 time.sleep(30)
     except TypeError:loop(config)
     except KeyError:loop(config)
