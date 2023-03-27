@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-22 18:30:57
+LastEditTime : 2023-03-27 14:08:54
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -14,12 +14,13 @@ Copyright (c) 2023 by 秋夜临, All Rights Reserved.
 import base64
 import json
 import os
+import pickle
 import re
 import datetime, pytz, time
 import sys
 import requests
 
-VERSION = '0.1.4' # 2023.03.22
+VERSION = '0.2' # 2023.03.27
 CONFIG_VERSION = 0.1
 HOST = "http://39.101.72.182/index.php"
 
@@ -29,6 +30,27 @@ def timeStamp_To_dateTime(timeStamp):
 def saveConfig(config):
     with open("config.json", "w", encoding='utf8') as file:
         json.dump(config, file, ensure_ascii=False, indent = 4)
+
+def loadConfig():
+    with open("config.json", "r+", encoding='utf8') as file:
+        config = json.load(file)
+    return config
+
+def saveCookies(cookies, filename):
+    with open(filename, 'wb') as f:
+        try:
+            pickle.dump(cookies, f)
+            print(f"{timeStamp_To_dateTime(time.time())}\t保存Cookie于 {filename}")
+        except:...
+
+def loadCookies(filename):
+    session = requests.Session()
+    with open(filename, 'rb') as f:
+        try:
+            session.cookies.update(pickle.load(f))
+            print(f"{timeStamp_To_dateTime(time.time())}\t于 {filename} 载入Cookie")
+            return session.cookies
+        except:...
 
 def init():
     print('首次运行初始化')
@@ -43,11 +65,6 @@ def init():
     config['pushplus_topic'] = input('(选填)输入pushplus推送加的群组编码：')
     saveConfig(config)
     print('初始化完成，请重新运行')
-
-def loadConfig():
-    with open("config.json", "r+", encoding='utf8') as file:
-        config = json.load(file)
-    return config
 
 def sendMsg(config, msg):
     data = {}
@@ -98,6 +115,7 @@ def getCaptchaImage(cookies):
 
 def login(config):
     cookies = getCookie()
+    saveCookies(cookies, f"{config['commutrace_username']}.cookies")
     captchaImage = getCaptchaImage(cookies)
     verifycode = apitruecaptcha(config, captchaImage)
     url = f"{HOST}/Home/Login/dologin.html"
@@ -122,9 +140,7 @@ def analyzingAllorder(allorder):
     if '请在登录后操作' in allorder:return 0
     else:
         taskData = re.findall(r'<td>[\s\S]+<\/td>', allorder)
-        if not taskData:
-            print(f"{timeStamp_To_dateTime(time.time())}\t当前无订单\r",end='')
-            return 1
+        if not taskData:return 1
         else:
             taskData = taskData[0]
             createTime = re.findall(r"(([0-9]{3}[1-9]|[0-9]{2}[1-9][0-9]{1}|[0-9]{1}[1-9][0-9]{2}|[1-9][0-9]{3})-(((0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01]))|((0[469]|11)-(0[1-9]|[12][0-9]|30))|(02-(0[1-9]|[1][0-9]|2[0-8]))))|((([0-9]{2})(0[48]|[2468][048]|[13579][26])|((0[48]|[2468][048]|[3579][26])00))-02-29)", taskData)
@@ -135,6 +151,7 @@ def analyzingAllorder(allorder):
             taskData = taskData.replace(' ' , '')
             taskData = taskData.replace('\t' , '')
             taskData = taskData.replace('\r\n' , '')
+            taskData = taskData.replace('\n' , '')
             taskData = re.sub(r"(<.?tr>)", r"" ,taskData)
             taskData = taskData.replace('</td><td>' , '</td>,<td>')
             taskData = re.sub(r"(<.?td>)", r'"' ,taskData)
@@ -160,11 +177,15 @@ def taskList_To_Msg(taskList):
 
 def loop(config):
     try:
-        cookies = login(config)
+        cookiesFilename = f"{config['commutrace_username']}.cookies"
+        if os.path.exists(cookiesFilename):cookies = loadCookies(cookiesFilename)
+        else:cookies = login(config)
         while True:
             taskList = analyzingAllorder(getAllorder(cookies))
-            if   taskList == 0 :cookies = login(cookies)
-            elif taskList == 1 :time.sleep(30)
+            if   taskList == 0:cookies = login(config)
+            elif taskList == 1:
+                print(f"{timeStamp_To_dateTime(time.time())}\t当前没有订单...\r",end='')
+                time.sleep(30)
             else:
                 i = [i['orderID'] for i in taskList] # 列表，临时存储订单ID用于寻找最大的ID
                 latestOrderID = int(max(i))
@@ -175,14 +196,14 @@ def loop(config):
                     sendMsg(config, msg)
                     saveConfig(config)
                     print(f"{taskList_To_Msg(taskList)}")
-                print(f"{timeStamp_To_dateTime(time.time())}\t刷新\r",end='')
+                print(f"{timeStamp_To_dateTime(time.time())}\t当前最新{latestOrderID}...\r",end='')
                 time.sleep(30)
     except TypeError:loop(config)
     except KeyError:loop(config)
-    except KeyboardInterrupt:print("结束")
+    except KeyboardInterrupt:print("\n结束")
     except requests.exceptions.ConnectionError:
         try:
-            print("与服务器连接中断，30秒后重试")
+            print(f"{timeStamp_To_dateTime(time.time())}\t网络连接中断")
             time.sleep(30)
             loop(config)
         except KeyboardInterrupt:print("结束")
