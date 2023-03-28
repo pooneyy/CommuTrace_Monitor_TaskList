@@ -58,8 +58,10 @@ def checkUpdate():
     except requests.exceptions.ProxyError:
         print("请检查计算机是否使用代理服务器，如有请关闭")
         os._exit(0)
-    latest = json.loads(response.text)["tag_name"]
-    return VERSION != latest
+    try:
+        latest = json.loads(response.text)["tag_name"]
+        return VERSION != latest
+    except:return False
 
 def init():
     print('首次运行初始化')
