@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-27 14:08:54
+LastEditTime : 2023-03-27 20:13:36
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -51,6 +51,12 @@ def loadCookies(filename):
             print(f"{timeStamp_To_dateTime(time.time())}\t于 {filename} 载入Cookie")
             return session.cookies
         except:...
+
+def checkUpdate():
+    url = "https://api.github.com/repos/pooneyy/CommuTrace_Monitor_TaskList/releases/latest"
+    response = requests.get(url)
+    latest = json.loads(response.text)["tag_name"]
+    return VERSION != latest
 
 def init():
     print('首次运行初始化')
@@ -211,6 +217,7 @@ def loop(config):
 def main():
     if 'linux' in sys.platform: sys.stdout.write(f"\x1b]2;监听共迹任务列表 - 版本 {VERSION}\x07")
     elif 'win' in sys.platform: os.system(f"title 监听共迹任务列表 - 版本 {VERSION}")
+    if checkUpdate():print("请更新到最新版本：https://github.com/pooneyy/CommuTrace_Monitor_TaskList/releases/latest \n")
     try:loop(loadConfig())
     except FileNotFoundError:
         try:init()
