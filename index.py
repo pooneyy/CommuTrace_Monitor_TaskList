@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-28 14:35:13
+LastEditTime : 2023-03-28 15:34:20
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -54,11 +54,11 @@ def loadCookies(filename):
 
 def checkUpdate():
     url = "https://api.github.com/repos/pooneyy/CommuTrace_Monitor_TaskList/releases/latest"
-    response = requests.get(url)
-    try:latest = json.loads(response.text)["tag_name"]
+    try:response = requests.get(url)
     except requests.exceptions.ProxyError:
         print("请检查计算机是否使用代理服务器，如有请关闭")
         os._exit(0)
+    latest = json.loads(response.text)["tag_name"]
     return VERSION != latest
 
 def init():
