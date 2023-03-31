@@ -4,7 +4,7 @@
 Author       : Qiuyelin
 Date         : 2023-03-14 20:08:52
 LastEditors  : Qiuyelin 85266337+pooneyy@users.noreply.github.com
-LastEditTime : 2023-03-28 20:39:52
+LastEditTime : 2023-03-31 21:48:32
 FilePath     : /CommuTrace_Monitor_TaskList/index.py
 Description  : 共迹算力平台_监听任务列表
 
@@ -20,7 +20,7 @@ import datetime, pytz, time
 import sys
 import requests
 
-VERSION = '0.2' # 2023.03.27
+VERSION = '0.2.1' # 2023.03.31
 CONFIG_VERSION = 0.1
 HOST = "http://39.101.72.182/index.php"
 
@@ -141,6 +141,7 @@ def getAllorder(cookies):
     '''获取全部订单'''
     url = f"{HOST}/Home/Index/allorder.html"
     response = requests.get(url, cookies=cookies)
+    response.close()
     return response.text
 
 def analyzingAllorder(allorder):
@@ -215,6 +216,10 @@ def loop(config):
             time.sleep(30)
             loop(config)
         except KeyboardInterrupt:print("结束")
+    except requests.exceptions.ChunkedEncodingError:
+        print(f"{timeStamp_To_dateTime(time.time())}\t远程主机关闭连接")
+        time.sleep(3)
+        loop(config)
 
 def main():
     if 'linux' in sys.platform: sys.stdout.write(f"\x1b]2;监听共迹任务列表 - 版本 {VERSION}\x07")
