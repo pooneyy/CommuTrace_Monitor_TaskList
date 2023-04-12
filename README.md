@@ -7,9 +7,9 @@
 
 现有一个已部署的demo，使用微信扫码，也可接收消息推送：
 
-<img src="https://s2.loli.net/2023/03/16/ebVOMoZwFRliA3q.jpg" alt="showqrcode" style="zoom: 33%;" />
+<img src="https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=gQGt7zwAAAAAAAAAAS5odHRwOi8vd2VpeGluLnFxLmNvbS9xLzAybWtkbUVkMDVjWEQxako3dWhBY3QAAgTtejZkAwQAjScA" alt="showqrcode"  />
 
-这个二维码**有效期至2023年4月15日**
+这个二维码**有效期至2023年05月11日**
 
 ### 使用说明
 
